@@ -141,6 +141,7 @@
 
 - (CGFloat)initialZoomScaleWithMinScale {
     CGFloat zoomScale = self.minimumZoomScale;
+    CGFloat minZoom = self.minimumZoomScale;
     if (_photoImageView) {
         // Zoom image to fill if the aspect ratios are fairly similar
         CGSize boundsSize = self.bounds.size;
@@ -153,7 +154,7 @@
         if (ABS(boundsAR - imageAR) < 0.17) {
             zoomScale = MAX(xScale, yScale);
             // Ensure we don't zoom in or out too far, just in case
-            zoomScale = MIN(MAX(self.minimumZoomScale, zoomScale), self.maximumZoomScale);
+             zoomScale = MIN(MAX(minZoom, zoomScale), minZoom);
         }
     }
     return zoomScale;
