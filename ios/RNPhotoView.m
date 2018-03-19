@@ -286,7 +286,7 @@
 #pragma mark - Setter
 
 - (void)setSource:(NSDictionary *)source {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         if ([_source isEqualToDictionary:source]) {
             return;
         }
@@ -301,46 +301,47 @@
             [self setImage:image];
             return;
         }
-
+        
         NSURLRequest *request = [[NSURLRequest alloc] initWithURL:imageURL];
-
+        
         __weak RNPhotoView *weakSelf = self;
         if (_onPhotoViewerLoadStart) {
             _onPhotoViewerLoadStart(nil);
         }
-
+        
         // use default values from [imageLoader loadImageWithURLRequest:request callback:callback] method
         [_bridge.imageLoader loadImageWithURLRequest:request
-                                        size:CGSizeZero
-                                       scale:1
-                                     clipped:YES
-                                  resizeMode:RCTResizeModeStretch
-                               progressBlock:^(int64_t progress, int64_t total) {
-                                   if (_onPhotoViewerProgress) {
-                                       _onPhotoViewerProgress(@{
-                                           @"loaded": @((double)progress),
-                                           @"total": @((double)total),
-                                       });
-                                   }
-                               }
-                            partialLoadBlock:nil
-                             completionBlock:^(NSError *error, UIImage *image) {
-                                                if (image) {
-                                                    dispatch_async(dispatch_get_main_queue(), ^{
-                                                        [weakSelf setImage:image];
-                                                    });
-                                                    if (_onPhotoViewerLoad) {
-                                                        _onPhotoViewerLoad(nil);
-                                                    }
-                                                } else {
-                                                    if (_onPhotoViewerError) {
-                                                        _onPhotoViewerError(nil);
-                                                    }
-                                                }
-                                                if (_onPhotoViewerLoadEnd) {
-                                                    _onPhotoViewerLoadEnd(nil);
-                                                }
-                                            }];
+                                                size:CGSizeZero
+                                               scale:1
+                                             clipped:YES
+                                          resizeMode:RCTResizeModeStretch
+                                       progressBlock:^(int64_t progress, int64_t total) {
+                                           if (_onPhotoViewerProgress) {
+                                               _onPhotoViewerProgress(@{
+                                                                        @"loaded": @((double)progress),
+                                                                        @"total": @((double)total),
+                                                                        });
+                                           }
+                                       }
+                                    partialLoadBlock:nil
+                                     completionBlock:^(NSError *error, UIImage *image) {
+                                         if (image) {
+                                             dispatch_async(dispatch_get_main_queue(), ^{
+                                                 [weakSelf setImage:image];
+                                             });
+                                             if (_onPhotoViewerLoad) {
+                                                 _onPhotoViewerLoad(nil);
+                                             }
+                                         } else {
+                                             if (_onPhotoViewerError) {
+                                                 _onPhotoViewerError(nil);
+                                             }
+                                         }
+                                         if (_onPhotoViewerLoadEnd) {
+                                             _onPhotoViewerLoadEnd(nil);
+                                         }
+                                     }];
+        
     });
 }
 
